@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import http from 'http';
+import path from 'path';
 import { WebSocketServer } from 'ws';
 import connectDB from './config/db';
 import { getRedisClient } from './config/redis';
@@ -41,6 +42,9 @@ const bootstrap = async () => {
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+  app.use(express.static(path.join(__dirname, '../public/frontend/.next/static')));
+  app.use(express.static(path.join(__dirname, '../public/frontend/public')));
+
   app.get('/health', async (_req, res) => {
     let redisStatus = 'unknown';
     try {
@@ -59,6 +63,16 @@ const bootstrap = async () => {
   });
 
   app.use('/api/assignments', assignmentRoutes);
+
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/frontend/.next/server/pages/_document.html'), 
+      (err) => {
+        if (err) {
+          res.status(404).json({ message: 'Frontend asset not found' });
+        }
+      }
+    );
+  });
 
   app.use(notFound);
   app.use(errorHandler);

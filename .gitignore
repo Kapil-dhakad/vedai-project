@@ -1,0 +1,17 @@
+.env
+.env.local
+.env*.local
+node_modules
+dist
+.next
+.turbopack
+uploads
+public/frontend
+*.log
+.DS_Store
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.env.production
