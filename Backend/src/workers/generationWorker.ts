@@ -76,6 +76,49 @@ const processGenerationJob = async (job: Job<GenerationJobData>): Promise<void> 
   console.log(`✅ Job ${job.id} completed. Paper ID: ${questionPaper._id}`);
 };
 
+export const initGenerationWorker = (): Worker<GenerationJobData> => {
+  const worker = new Worker<GenerationJobData>(
+    'question-generation',
+    processGenerationJob,
+    {
+      connection: createRedisConnection(),
+      concurrency: 2,
+    }
+  );
+
+  worker.on('active', (job) => {
+    console.log(`▶️  Job ${job.id} started (in-process)`);
+  });
+
+  worker.on('completed', (job) => {
+    console.log(`✅ Job ${job.id} completed successfully (in-process)`);
+  });
+
+  worker.on('failed', async (job, err) => {
+    console.error(`❌ Job ${job?.id} failed (in-process):`, err.message);
+
+    if (job?.data?.assignmentId) {
+      await Assignment.findByIdAndUpdate(job.data.assignmentId, {
+        status: 'failed',
+        errorMessage: err.message,
+      });
+
+      wsManager.broadcast(job.data.assignmentId, {
+        type: 'error',
+        status: 'failed',
+        message: `Generation failed: ${err.message}`,
+      });
+    }
+  });
+
+  worker.on('error', (err) => {
+    console.error('❌ Worker error (in-process):', err);
+  });
+
+  console.log('🚀 Generation worker started inside Express process');
+  return worker;
+};
+
 const startWorker = async () => {
   await connectDB();
 
@@ -117,7 +160,7 @@ const startWorker = async () => {
     console.error('❌ Worker error:', err);
   });
 
-  console.log('🚀 Generation worker started and listening for jobs...');
+  console.log('🚀 Standalone generation worker started and listening for jobs...');
 
   const shutdown = async () => {
     console.log('\n🛑 Shutting down worker...');
@@ -130,7 +173,10 @@ const startWorker = async () => {
   process.on('SIGINT', shutdown);
 };
 
-startWorker().catch((err) => {
-  console.error('Failed to start worker:', err);
-  process.exit(1);
-});
+// Check if run directly
+if (require.main === module) {
+  startWorker().catch((err) => {
+    console.error('Failed to start worker:', err);
+    process.exit(1);
+  });
+}

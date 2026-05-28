@@ -22,6 +22,10 @@ const bootstrap = async () => {
     console.log('✅ Redis ping successful');
 
     getGenerationQueue();
+
+    // Start BullMQ worker inside Express to run everything on the free tier
+    const { initGenerationWorker } = require('./workers/generationWorker');
+    initGenerationWorker();
   } catch (redisErr) {
     console.warn('⚠️  Redis unavailable — caching & job queue disabled.');
     console.warn('   Error:', (redisErr as Error).message);
@@ -42,8 +46,7 @@ const bootstrap = async () => {
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-  app.use(express.static(path.join(__dirname, '../public/frontend/.next/static')));
-  app.use(express.static(path.join(__dirname, '../public/frontend/public')));
+  app.use(express.static(path.join(__dirname, '../public/frontend')));
 
   app.get('/health', async (_req, res) => {
     let redisStatus = 'unknown';
@@ -65,7 +68,7 @@ const bootstrap = async () => {
   app.use('/api/assignments', assignmentRoutes);
 
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/frontend/.next/server/pages/_document.html'), 
+    res.sendFile(path.join(__dirname, '../public/frontend/index.html'),
       (err) => {
         if (err) {
           res.status(404).json({ message: 'Frontend asset not found' });
@@ -97,7 +100,7 @@ const bootstrap = async () => {
   };
 
   process.on('SIGTERM', () => shutdown('SIGTERM'));
-  process.on('SIGINT',  () => shutdown('SIGINT'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 
   process.on('uncaughtException', (err) => {
     console.error('❌ Uncaught Exception:', err);
