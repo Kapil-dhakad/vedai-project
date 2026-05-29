@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import ReduxProvider from '@/components/providers/ReduxProvider';
 import Sidebar from '@/components/layout/Sidebar';
+import { Toaster } from 'react-hot-toast';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Sidebar />
             <main className="flex-1 ml-60 min-h-screen">{children}</main>
           </div>
+          <Toaster position="top-right" reverseOrder={false} />
         </ReduxProvider>
       </body>
     </html>

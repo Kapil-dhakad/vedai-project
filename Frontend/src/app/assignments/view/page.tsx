@@ -14,6 +14,7 @@ import GeneratingState from '@/components/output/GeneratingState';
 import { ArrowLeft, RotateCcw, Download, Loader2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { downloadPDF } from '@/lib/pdfExport';
+import { toast } from 'react-hot-toast';
 
 function AssignmentOutputContent() {
   const searchParams = useSearchParams();
@@ -53,13 +54,31 @@ function AssignmentOutputContent() {
 
   const handleRegenerate = async () => {
     if (!confirm('Regenerate this question paper? The current paper will be replaced.')) return;
-    await dispatch(regenerateAssignment(id));
-    subscribe(id);
+    
+    const regenPromise = dispatch(regenerateAssignment(id)).then((result) => {
+      if (regenerateAssignment.fulfilled.match(result)) {
+        subscribe(id);
+        return result.payload;
+      } else {
+        throw new Error(result.payload as string || 'Failed to trigger regeneration');
+      }
+    });
+
+    toast.promise(regenPromise, {
+      loading: 'Triggering regeneration...',
+      success: 'Regeneration started successfully!',
+      error: (err) => err.message || 'Failed to regenerate paper',
+    });
   };
 
   const handleDownloadPDF = () => {
     if (paperRef.current && currentPaper && currentAssignment) {
-      downloadPDF(paperRef.current, `${currentAssignment.title}-question-paper`);
+      const downloadPromise = downloadPDF(paperRef.current, `${currentAssignment.title}-question-paper`);
+      toast.promise(downloadPromise, {
+        loading: 'Preparing PDF...',
+        success: 'PDF downloaded successfully!',
+        error: (err) => `PDF export failed: ${err.message || err}`,
+      });
     }
   };
 

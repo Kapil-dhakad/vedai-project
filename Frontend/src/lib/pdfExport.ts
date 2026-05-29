@@ -69,6 +69,6 @@ export const downloadPDF = async (element: HTMLElement, filename: string): Promi
     pdf.save(`${filename.replace(/[^a-z0-9-_]/gi, '_')}.pdf`);
   } catch (err) {
     console.error('PDF export failed:', err);
-    alert(`PDF export failed: ${(err as Error).message}. Please try again.`);
+    throw err;
   }
 };

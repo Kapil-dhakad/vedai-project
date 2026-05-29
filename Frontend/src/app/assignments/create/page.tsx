@@ -12,6 +12,8 @@ import Header from '@/components/layout/Header';
 import CreateAssignmentForm from '@/components/assignment/CreateAssignmentForm';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
+import { AssignmentFormData } from '@/types';
+import { toast } from 'react-hot-toast';
 
 export default function CreateAssignmentPage() {
   const dispatch = useAppDispatch();
@@ -20,17 +22,29 @@ export default function CreateAssignmentPage() {
   const { subscribe } = useWebSocket();
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = async () => {
-    const result = await dispatch(createAssignment(formData));
-    if (createAssignment.fulfilled.match(result)) {
-      const assignmentId = result.payload._id;
-      subscribe(assignmentId);
-      setSubmitted(true);
-      setTimeout(() => {
-        dispatch(resetForm());
-        router.push(`/assignments/view?id=${assignmentId}`);
-      }, 1500);
-    }
+  const handleSubmit = async (data: AssignmentFormData) => {
+    dispatch(setFormData(data));
+    
+    const savePromise = dispatch(createAssignment(data)).then((result) => {
+      if (createAssignment.fulfilled.match(result)) {
+        const assignmentId = result.payload._id;
+        subscribe(assignmentId);
+        setSubmitted(true);
+        setTimeout(() => {
+          dispatch(resetForm());
+          router.push(`/assignments/view?id=${assignmentId}`);
+        }, 1500);
+        return result.payload;
+      } else {
+        throw new Error(result.payload as string || 'Failed to create assignment');
+      }
+    });
+
+    toast.promise(savePromise, {
+      loading: 'Creating assignment and initiating AI...',
+      success: 'Assignment created successfully!',
+      error: (err) => err.message || 'Failed to create assignment',
+    });
   };
 
   if (submitted) {

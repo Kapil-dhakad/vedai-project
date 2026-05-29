@@ -6,7 +6,7 @@ import { Upload, X, FileText, Calendar, Minus, Plus, AlertCircle } from 'lucide-
 interface Props {
     formData: AssignmentFormData;
     onChange: (data: Partial<AssignmentFormData>) => void;
-    onSubmit: () => void;
+    onSubmit: (data: AssignmentFormData) => void;
     loading: boolean;
     error: string | null;
 }
@@ -88,8 +88,15 @@ export default function CreateAssignmentForm({
 
     const handleSubmitForm = () => {
         if (!validate()) return;
-        onChange({ ...local, file, questionTypes, additionalInstructions: instructions });
-        onSubmit();
+        const updatedData: AssignmentFormData = {
+            ...formData,
+            ...local,
+            file,
+            questionTypes,
+            additionalInstructions: instructions,
+        };
+        onChange(updatedData);
+        onSubmit(updatedData);
     };
 
     const handleFile = (f: File) => {

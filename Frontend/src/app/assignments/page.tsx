@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Assignment } from '@/types';
 import { format } from 'date-fns';
+import { toast } from 'react-hot-toast';
 
 function StatusBadge({ status }: { status: Assignment['status'] }) {
   const config = {
@@ -174,7 +175,19 @@ export default function AssignmentsPage() {
 
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this assignment?')) {
-      dispatch(deleteAssignment(id));
+      const deletePromise = dispatch(deleteAssignment(id)).then((result) => {
+        if (deleteAssignment.fulfilled.match(result)) {
+          return result.payload;
+        } else {
+          throw new Error(result.payload as string || 'Failed to delete assignment');
+        }
+      });
+
+      toast.promise(deletePromise, {
+        loading: 'Deleting assignment...',
+        success: 'Assignment deleted successfully!',
+        error: (err) => err.message || 'Failed to delete assignment',
+      });
     }
   };
 
