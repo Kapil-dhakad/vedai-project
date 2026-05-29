@@ -28,7 +28,7 @@ export default function CreateAssignmentPage() {
       setSubmitted(true);
       setTimeout(() => {
         dispatch(resetForm());
-        router.push(`/assignments/${assignmentId}`);
+        router.push(`/assignments/view?id=${assignmentId}`);
       }, 1500);
     }
   };

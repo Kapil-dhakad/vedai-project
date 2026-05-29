@@ -84,7 +84,7 @@ function AssignmentCard({
               <div className="absolute right-0 top-9 z-20 bg-white border border-gray-100 rounded-xl shadow-lg py-1 w-40 animate-fade-in">
                 {assignment.status === 'completed' && (
                   <Link
-                    href={`/assignments/${assignment._id}`}
+                    href={`/assignments/view?id=${assignment._id}`}
                     className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     onClick={() => setMenuOpen(false)}
                   >
@@ -120,7 +120,7 @@ function AssignmentCard({
       {/* View button for completed */}
       {assignment.status === 'completed' && (
         <Link
-          href={`/assignments/${assignment._id}`}
+          href={`/assignments/view?id=${assignment._id}`}
           id={`view-assignment-${assignment._id}`}
           className="mt-3 flex items-center justify-center gap-1.5 w-full py-2 bg-violet-50 hover:bg-violet-100 text-violet-700 text-xs font-semibold rounded-xl transition-all"
         >

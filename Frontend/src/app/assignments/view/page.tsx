@@ -1,6 +1,6 @@
 'use client';
-import { useEffect, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useRef, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/hooks/useRedux';
 import {
   fetchAssignment,
@@ -15,9 +15,9 @@ import { ArrowLeft, RotateCcw, Download, Loader2, AlertCircle } from 'lucide-rea
 import Link from 'next/link';
 import { downloadPDF } from '@/lib/pdfExport';
 
-export default function AssignmentOutputPage() {
-  const params = useParams();
-  const id = params.id as string;
+function AssignmentOutputContent() {
+  const searchParams = useSearchParams();
+  const id = searchParams.get('id') as string;
   const dispatch = useAppDispatch();
   const router = useRouter();
   const paperRef = useRef<HTMLDivElement>(null);
@@ -162,7 +162,7 @@ export default function AssignmentOutputPage() {
           </div>
         )}
 
-        {/* The question paper itself */}
+         {/* The question paper itself */}
         {currentPaper && (
           <div ref={paperRef}>
             <QuestionPaperView paper={currentPaper} />
@@ -170,5 +170,17 @@ export default function AssignmentOutputPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AssignmentOutputPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+      </div>
+    }>
+      <AssignmentOutputContent />
+    </Suspense>
   );
 }
