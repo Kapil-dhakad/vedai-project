@@ -1,8 +1,18 @@
 import axios from 'axios';
 import { Assignment, AssignmentFormData, QuestionPaper, ApiResponse, PaginatedResponse } from '@/types';
 
+const getBaseURL = () => {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      return window.location.origin;
+    }
+  }
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+};
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000',
+  baseURL: getBaseURL(),
   timeout: 30000,
   headers: { 'Content-Type': 'application/json' },
 });

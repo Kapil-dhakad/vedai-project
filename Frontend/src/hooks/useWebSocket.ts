@@ -5,7 +5,18 @@ import { AppDispatch } from '@/store';
 import { setGenerationStatus, updateAssignmentStatus, fetchPaper } from '@/store/assignmentSlice';
 import { WSEvent } from '@/types';
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:5000/ws';
+const getWSURL = () => {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      return `${protocol}//${window.location.host}/ws`;
+    }
+  }
+  return process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:5000/ws';
+};
+
+const WS_URL = getWSURL();
 const RECONNECT_DELAY = 3000;
 const MAX_RECONNECTS = 5; // reduced: stop spamming if backend is down
 
